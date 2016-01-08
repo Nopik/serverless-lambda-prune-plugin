@@ -12,4 +12,4 @@ Usage
 
 Options:
 
-`--number number` / `-n number`: keep `number` most recent versions (default: 3)
+`--number number` / `-n number`: keep `number` most recent versions (default: 5)
