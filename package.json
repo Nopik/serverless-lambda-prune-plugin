@@ -1,0 +1,36 @@
+{
+  "name": "serverless-lambda-prune-plugin",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "description": "Delete old/unused lambda versions from your AWS account",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nopik/serverless-lambda-prune-plugin.git"
+  },
+  "keywords": [
+    "serverless",
+    "serverless plugins",
+    "lambda",
+    "aws",
+    "aws lambda",
+    "amazon",
+    "amazon web services",
+    "serverless.com"
+  ],
+  "author": "Kamil Burzynski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Nopik/serverless-lambda-prune-plugin/issues"
+  },
+  "homepage": "https://github.com/Nopik/serverless-lambda-prune-plugin#readme",
+  "dependencies": {
+    "aws-sdk": "^2.2.28",
+    "bluebird": "^3.0.6"
+  }
+}
