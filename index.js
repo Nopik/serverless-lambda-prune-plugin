@@ -93,7 +93,7 @@ module.exports = function(SPlugin, serverlessPath) {
 
             let toKeep = evt.number;
             vs.forEach(function( v ){
-              if( (toKeep > 0) && (v.Version != '$LATEST') ) {
+              if( (toKeep > 0) && (v.Version != '$LATEST') && (keepVersions.indexOf( v.Version ) < 0) ) {
                 keepVersions.push( v.Version );
                 toKeep--;
               }
