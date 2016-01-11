@@ -108,9 +108,9 @@ module.exports = function(SPlugin, serverlessPath) {
                   Qualifier: v.Version
                 }); });
               }
-            }, { concurrency: 1 });
+            }, { concurrency: 3 });
           });
-        }, { concurrency: 1 });
+        }, { concurrency: 3 });
 
         return evt;
       });
