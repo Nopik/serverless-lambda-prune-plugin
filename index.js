@@ -130,12 +130,7 @@ module.exports = function(SPlugin, serverlessPath) {
         _this.evt.number = 5;
       }
 
-      return this.S.validateProject()
-        .bind(_this)
-        .then(function() {
-          return _this.evt;
-        })
-        .then(_this._listLambdas);
+      return _this._listLambdas(_this.evt);
     }
   }
   return LambdaPrune;
