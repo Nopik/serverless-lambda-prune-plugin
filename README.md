@@ -5,6 +5,11 @@ When developing with [Serverless](http://serverless.com/) framework your AWS acc
 
 Most recent versions and versions with aliases are not deleted.
 
+Installation
+============
+
+`npm install serverless-lambda-prune-plugin`
+
 Usage
 =====
 
