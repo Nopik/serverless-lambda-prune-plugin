@@ -16,6 +16,9 @@ module.exports = function(SPlugin, serverlessPath) {
   let Lambda = new AWS.Lambda( params );
   BbPromise.promisifyAll( Object.getPrototypeOf( Lambda ), { suffix: 'Asynchronously' } );
 
+  let APIGateway = new AWS.APIGateway( params );
+  BbPromise.promisifyAll( Object.getPrototypeOf( APIGateway ) );
+
   class LambdaPrune extends SPlugin {
     constructor(S) {
       super(S);
@@ -34,6 +37,19 @@ module.exports = function(SPlugin, serverlessPath) {
             option:      'number',
             shortcut:    'n',
             description: 'Keep last N versions (default: 5)'
+          }
+        ]
+      });
+      this.S.addAction(this.apigPrune.bind(this), {
+        handler:       'apigPrune',
+        description:   `Delete old/unused API Gateway deployments from your AWS account`,
+        context:       'endpoint',
+        contextAction: 'prune',
+        options:       [
+          {
+            option:      'number',
+            shortcut:    'n',
+            description: 'Keep N latest versions (default: 5)'
           }
         ]
       });
@@ -137,6 +153,106 @@ module.exports = function(SPlugin, serverlessPath) {
         })
         .then(_this._listLambdas);
     }
+    _listApiStages( restApiId ){
+      return this._slowdownRequests( function(){
+        return APIGateway.getStagesAsync({ restApiId: restApiId });
+      }).then(function(res){
+        return res.item;
+      });
+    }
+    _listDeployments( restApiId ){
+      let _this = this;
+      let getPage = function(items, position) {
+        return _this._slowdownRequests( function(){
+          return APIGateway.getDeploymentsAsync({
+            restApiId: restApiId,
+            position: position
+          }).then( function(data){
+            data.items.forEach(function(item){
+              item.date = new Date( item.createdDate );
+            });
+            items = items.concat( data.items );
+            if( data.position ) {
+              return getPage( items, data.position );
+            } else {
+              return items;
+            }
+          });
+        });
+      };
+      return getPage( [] );
+    }
+    _deleteDeployments( restApiId, deployments ){
+      let _this = this;
+      return BbPromise.map( deployments, function(d){
+        SCli.log( `Deleting deployment ${ d.id } created on ${ d.createdDate }` );
+        return _this._slowdownRequests( function(){
+          return APIGateway.deleteDeploymentAsync({
+            deploymentId: d.id,
+            restApiId: restApiId
+          });
+        });
+      }, { concurrency: 3 } );
+
+    }
+    apigPrune(evt){
+      let _this = this;
+
+      if (_this.S.cli) {
+        evt = JSON.parse(JSON.stringify(this.S.cli.options));
+        if (_this.S.cli.options.nonInteractive) _this.S._interactive = false
+      }
+
+      _this.evt = evt;
+
+      if( !_this.evt.number ){
+        _this.evt.number = 5;
+      }
+
+      return this.S.validateProject()
+          .bind(_this)
+          .then(function() {
+            return _this.evt;
+          })
+          .then(function(){
+            //FIXME: this takes first API id from first found stage; consider more clever way
+            let restApiId =_this.S._projectJson.stages[ Object.getOwnPropertyNames( _this.S._projectJson.stages )[ 0 ] ][ 0 ].restApiId;
+            return BbPromise.all([
+              _this._listApiStages( restApiId ),
+              _this._listDeployments( restApiId )
+            ]).spread(function( stages, deployments ){
+              let stage_deployments = stages.map(function(s){
+                return s.deploymentId;
+              })
+              let to_keep = evt.number;
+              let deployments_to_remove = deployments.sort( function( d1, d2 ) {
+                if( d1.date < d2.date ) {
+                  return 1;
+                } else {
+                  if( d1.date > d2.date ) {
+                    return -1;
+                  } else {
+                    return 0;
+                  }
+                }
+              }).filter( function(d){
+                if( stage_deployments.indexOf( d.id ) >= 0 ) {
+                  return false;
+                } else {
+                  if( 0 < to_keep ){
+                    to_keep--;
+                    return false;
+                  } else {
+                    return true;
+                  }
+                }
+              });
+              SCli.log( `Found ${ stages.length } stages and ${ deployments.length } deployments; ${ deployments_to_remove.length } deployments to be removed` );
+              return _this._deleteDeployments( restApiId, deployments_to_remove );
+            });
+          });
+    }
+
   }
   return LambdaPrune;
 };
