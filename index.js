@@ -8,14 +8,6 @@ module.exports = function(SPlugin, serverlessPath) {
   AWS = require( 'aws-sdk' ),
   BbPromise = require( 'bluebird' );
 
-  let params = {};
-  if( process.env.AWS_REGION ) {
-    params.region = process.env.AWS_REGION;
-  }
-
-  let Lambda = new AWS.Lambda( params );
-  BbPromise.promisifyAll( Object.getPrototypeOf( Lambda ), { suffix: 'Asynchronously' } );
-
   class LambdaPrune extends SPlugin {
     constructor(S) {
       super(S);
@@ -30,6 +22,11 @@ module.exports = function(SPlugin, serverlessPath) {
         context:       'function',
         contextAction: 'prune',
         options:       [
+          {
+            option:      'region',
+            shortcut:    'r',
+            description: 'region you want to list env vars for'
+          },
           {
             option:      'number',
             shortcut:    'n',
@@ -63,6 +60,16 @@ module.exports = function(SPlugin, serverlessPath) {
 
     _listLambdas(evt){
       let _this =  this;
+
+      let params = {};
+      if( process.env.AWS_REGION ) {
+        params.region = process.env.AWS_REGION;
+      } else {
+        params.region = evt.region
+      }
+
+      let Lambda = new AWS.Lambda( params );
+      BbPromise.promisifyAll( Object.getPrototypeOf( Lambda ), { suffix: 'Asynchronously' } );
 
       //TODO: handle marker for pagination?
       return _this._slowdownRequests( function(){ return Lambda.listFunctionsAsynchronously({}); } ).then(function(functions){
@@ -130,12 +137,7 @@ module.exports = function(SPlugin, serverlessPath) {
         _this.evt.number = 5;
       }
 
-      return this.S.validateProject()
-        .bind(_this)
-        .then(function() {
-          return _this.evt;
-        })
-        .then(_this._listLambdas);
+      return _this._listLambdas(_this.evt);
     }
   }
   return LambdaPrune;
