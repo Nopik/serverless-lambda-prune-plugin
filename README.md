@@ -10,11 +10,18 @@ Installation
 
 `npm install serverless-lambda-prune-plugin`
 
+and add into /s-project.json :
+
+    "plugins": [
+      "serverless-lambda-prune-plugin"
+    ],
+
 Usage
 =====
 
-`sls function prune`
+`sls function prune -r "us-east-1"`
 
 Options:
 
 `--number number` / `-n number`: keep `number` most recent versions (default: 5)
+`--region region` / `-r region`
