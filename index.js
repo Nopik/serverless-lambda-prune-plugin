@@ -11,6 +11,7 @@ module.exports = function(S) {
   class LambdaPrune extends S.classes.Plugin {
     constructor() {
       super();
+      this.name = 'prune';
     }
     static getName() {
       return 'net.nopik.' + LambdaPrune.name;
