@@ -9,14 +9,14 @@ module.exports = function(S) {
   BbPromise = require( 'bluebird' );
 
   class LambdaPrune extends S.classes.Plugin {
-    constructor(S) {
-      super(S);
+    constructor() {
+      super();
     }
     static getName() {
       return 'net.nopik.' + LambdaPrune.name;
     }
     registerActions() {
-      this.S.addAction(this.prune.bind(this), {
+      S.addAction(this.prune.bind(this), {
         handler:       'prune',
         description:   `Delete old/unused lambda versions from your AWS account`,
         context:       'function',
@@ -126,9 +126,9 @@ module.exports = function(S) {
     prune(evt) {
       let _this = this;
 
-      if (_this.S.cli) {
-        evt = JSON.parse(JSON.stringify(this.S.cli.options));
-        if (_this.S.cli.options.nonInteractive) _this.S._interactive = false
+      if (S.cli) {
+        evt = JSON.parse(JSON.stringify(S.cli.options));
+        if (S.cli.options.nonInteractive) S._interactive = false
       }
 
       _this.evt = evt;
