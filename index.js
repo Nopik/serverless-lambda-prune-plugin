@@ -1,14 +1,14 @@
 'use strict';
 
-module.exports = function(SPlugin, serverlessPath) {
+module.exports = function(S) {
   const path = require( 'path' ),
-  SUtils = require( path.join( serverlessPath, 'utils' ) ),
-  context = require( path.join( serverlessPath, 'utils', 'context' ) ),
-  SCli = require( path.join( serverlessPath, 'utils', 'cli' ) ),
+  SUtils = require( S.getServerlessPath( 'utils' ) ),
+  context = require( S.getServerlessPath( 'utils/context' ) ),
+  SCli = require( S.getServerlessPath( 'utils/cli' ) ),
   AWS = require( 'aws-sdk' ),
   BbPromise = require( 'bluebird' );
 
-  class LambdaPrune extends SPlugin {
+  class LambdaPrune extends S.classes.Plugin {
     constructor(S) {
       super(S);
     }
