@@ -1,22 +1,23 @@
 'use strict';
 
-module.exports = function(SPlugin, serverlessPath) {
+module.exports = function(S) {
   const path = require( 'path' ),
-  SUtils = require( path.join( serverlessPath, 'utils' ) ),
-  context = require( path.join( serverlessPath, 'utils', 'context' ) ),
-  SCli = require( path.join( serverlessPath, 'utils', 'cli' ) ),
+  SUtils = require( S.getServerlessPath( 'utils' ) ),
+  context = require( S.getServerlessPath( 'utils/context' ) ),
+  SCli = require( S.getServerlessPath( 'utils/cli' ) ),
   AWS = require( 'aws-sdk' ),
   BbPromise = require( 'bluebird' );
 
-  class LambdaPrune extends SPlugin {
-    constructor(S) {
-      super(S);
+  class LambdaPrune extends S.classes.Plugin {
+    constructor() {
+      super();
+      this.name = 'prune';
     }
     static getName() {
       return 'net.nopik.' + LambdaPrune.name;
     }
     registerActions() {
-      this.S.addAction(this.prune.bind(this), {
+      S.addAction(this.prune.bind(this), {
         handler:       'prune',
         description:   `Delete old/unused lambda versions from your AWS account`,
         context:       'function',
@@ -126,9 +127,9 @@ module.exports = function(SPlugin, serverlessPath) {
     prune(evt) {
       let _this = this;
 
-      if (_this.S.cli) {
-        evt = JSON.parse(JSON.stringify(this.S.cli.options));
-        if (_this.S.cli.options.nonInteractive) _this.S._interactive = false
+      if (S.cli) {
+        evt = JSON.parse(JSON.stringify(S.cli.options));
+        if (S.cli.options.nonInteractive) S._interactive = false
       }
 
       _this.evt = evt;
