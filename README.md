@@ -8,7 +8,18 @@ Most recent versions and versions with aliases are not deleted.
 Installation
 ============
 
+Install via npm in the root of your Serverless Project:
+
 `npm install serverless-lambda-prune-plugin`
+
+Add the plugin to the plugins array in your Serverless Project's s-project.json, like this:
+
+```
+plugins: [
+    "serverless-lambda-prune-plugin"
+]
+```
+
 
 Usage
 =====
